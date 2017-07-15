@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>je-tree</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="wcodeth=device-wcodeth, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="css/jeui.css"  media="all">
+    <script type="text/javascript" src="js/modules/jquery.min.js"></script>
+    <script type="text/javascript" src="js/modules/jeDropdown.js"></script>
+</head>
+<body>
+<div >
+    
+    <blockquote class="je-quote je-f16">
+        jeDropdown
+    </blockquote>
+    <div style="padding-top: 100px; text-align: center;">
+        <button class="je-btn je-bg-green je-w15" id="down01">绿色按钮</button>
+        <button class="je-btn je-bg-orange je-w15" id="down02">暖色按钮</button><br/><br/><br/>
+        <button class="je-btn je-bg-green je-w15" id="down03">绿色按钮</button>
+        <button class="je-btn je-bg-orange je-w15" id="down04">暖色按钮</button>
+    </div>
+    
+</div>
+<script type="text/javascript">
+    var jsonlist = [
+        {
+            name: "首页",
+            url: "http://www.jayui.com/",
+            list: {
+                tid: "M006",
+                name: "je原创插件库",
+                url: "http://www.jayui.com/"
+            }
+        },
+        {
+            name: "车辆买卖",
+            list:{
+                tid: "M007",
+                name: "别克"
+            }
+        }
+    ];
+    $("#down01").jeDropdown({dataDrop:jsonlist,align:"top"});
+    $("#down02").jeDropdown({dataDrop:jsonlist,align:"right"});
+    $("#down03").jeDropdown({dataDrop:jsonlist,align:"left"});
+    $("#down04").jeDropdown({dataDrop:jsonlist,align:"bottom"});
+</script>
+<!--http://www.qdfuns.com/notes/13967/3cdebc6a132f33a3e65aa2b6019a7487.html-->
+</body>
+</html>

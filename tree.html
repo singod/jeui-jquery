@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>je-tree</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="wcodeth=device-wcodeth, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="css/jeui.css"  media="all">
+    <script type="text/javascript" src="js/modules/jeui.js"></script>
+</head>
+<body>
+<div class="je-p20">
+    
+    <blockquote class="je-quote je-f16">
+        tree树列表
+    </blockquote>
+    <div id="trees" class="je-tree"></div>
+    
+</div>
+<script type="text/javascript">
+jeui.use(["jquery","jeTree"],function () {
+    var jsonlist = [
+        {
+            tid: "M001",
+            name: "首页",
+            url: "",
+            childlist: [
+                {
+                    tid: "M006",
+                    name: "je原创插件库",
+                    url: "http://www.jayui.com/",
+                    childlist: ""
+                },
+                {
+                    tid: "M007",
+                    name: "别克",
+                    url: "",
+                    childlist: ""
+                }
+            ]
+        },
+        {
+            tid: "M002",
+            name: "车辆买卖",
+            url: "",
+            open: true,
+            childlist: [
+                {
+                    tid: "M003",
+                    name: "新车",
+                    url: "",
+                    open: true,
+                    childlist: [
+                        {
+                            tid: "M006",
+                            name: "奥迪",
+                            url: "",
+                            childlist: [
+                                {
+                                    tid: "M007",
+                                    name: "别克",
+                                    url: "",
+                                    childlist: [
+                                        {
+                                            tid: "M006",
+                                            name: "奥迪",
+                                            url: "",
+                                            childlist: ""
+                                        },
+                                        {
+                                            tid: "M007",
+                                            name: "别克",
+                                            url: "",
+                                            childlist: ""
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            tid: "M007",
+                            name: "别克",
+                            url: "",
+                            childlist: ""
+                        }
+                    ]
+                },
+                {
+                    tid: "M004",
+                    name: "二手车",
+                    url: "",
+                    childlist: ""
+                },
+                {
+                    tid: "M005",
+                    name: "改装车",
+                    url: "",
+                    childlist: [
+                        {
+                            tid: "M006",
+                            name: "奥迪",
+                            url: "",
+                            childlist: ""
+                        },
+                        {
+                            tid: "M007",
+                            name: "别克",
+                            url: "",
+                            childlist: ""
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            tid: "M006",
+            name: "宠物",
+            url: "",
+            childlist: [
+                {
+                    tid: "M006",
+                    name: "奥迪",
+                    url: "",
+                    childlist: ""
+                },
+                {
+                    tid: "M007",
+                    name: "别克",
+                    url: "",
+                    childlist: ""
+                }
+            ]
+        }
+    ];
+    $("#trees").jeTree({
+        datas:jsonlist,
+        itemfun:function (item) {
+            console.log(item)
+        }
+    })
+})    
+</script>
+<!--http://www.qdfuns.com/notes/13967/3cdebc6a132f33a3e65aa2b6019a7487.html-->
+</body>
+</html>
