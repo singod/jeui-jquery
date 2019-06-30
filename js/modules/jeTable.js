@@ -1,5 +1,6 @@
 /**
  * Created by sinarts on 17/2/22.
+ *扩展：蓝狐软件工作室，http://www.lanhusoft.com
  */
 (function(root, factory) {
     //amd
@@ -86,8 +87,8 @@
             $.each(data,function(idx,val){
                 var tr = $("<tr row='"+idx+"'></tr>");
                 $.each(colDate,function (i,d) {
-                    var isShow = je.isBool(d.isShow), alVal = d.align||"left";
-                    var renVal = (d.renderer != "" && d.renderer != undefined) ? d.renderer(val,idx) : val[d.field],  
+                    var isShow = je.isBool(d.isShow), alVal = d.align || "left";
+                    var renVal = (d.renderer != "" && d.renderer != undefined) ? d.renderer(val, idx) : (val[d.field] == null ? "" : val[d.field]),
                         tdCls = $("<td class='field-"+d.field+"'><div>"+renVal+"</div></td>").addClass("dfields").attr("align",alVal).css({width:d.width});
                     tr.append(isShow ? tdCls : tdCls.hide());
                 });
@@ -141,7 +142,7 @@
             });
             //加载成功后的回调
             if ($.isFunction(opts.success) || opts.success != "" || opts.success != null) {
-                opts.success && opts.success(that.elCell,tbody);
+                opts.success && opts.success(that.elCell,tbody,data,json);
             }
         };
         //拉取数据
@@ -149,6 +150,13 @@
             tbodySuccess(dataObj,"");
             maskCls.hide();
         } else {
+            if (window.lanhuPageSize) {
+                dataArr.pagesize = window.lanhuPageSize;
+            }
+            if (window.lanhuSortIndex) {
+                dataArr.sortIndex = window.lanhuSortIndex;
+                dataArr.sortType = window.lanhuSortType;
+            }
             $.ajax({
                 url: dataObj.url,
                 type: dataObj.type,
@@ -156,12 +164,20 @@
                 dataType: dataObj.dataType || "json",
                 async: dataObj.async || true,
                 success: function (json) {
+                    /*if (json.State == 0) {
+                        maskCls.show().html("<div class='nocontent'>" + json.Message + "</div>");
+                        setTimeout(function () { window.top.location = json.Data }, 3000);
+                        return;
+                    }*/
                     var rowVal = dataObj.field == "" ? json : json[dataObj.field];
                     if(rowVal.length == 0 || rowVal == undefined){
                         maskCls.show().html("<div class='nocontent'>抱歉无更多内容了</div>");
                     }else {
                         tbodySuccess(rowVal,json);
                         maskCls.hide(); 
+                    }
+                    if ($.isFunction(that.opts.callback) && that.opts.callback) {
+                        that.opts.callback(json);
                     }
                 },
                 error:function (XMLHttpRequest, textStatus, errorThrown) {
@@ -204,11 +220,35 @@
     };
     //表格排序
     jefn.tableSorter = function (obj) {
+        var that = this;
         var colSort = obj.colSort, eltop = obj.elhead, thCls = eltop.find("thead th"),all = "all", sa = "asc", sd = "desc",
             elcon = (obj.elbody == "" || obj.elbody == undefined) ? eltop : obj.elbody;
-        $.each(colSort, function(i, d) {
-            thCls.eq(d-1).addClass("colsort all").attr("sort", sa).append("<em></em>");
+        $.each(colSort, function (i, d) {
+            thCls.eq(d-1).addClass("colsort all").attr("sort", sd).append("<em></em>");
         });
+        if (that.opts.sortByServer == 1) {
+            //alert('yeah');
+            //点击表格升序/降序
+            thCls.on("click", function () {
+                var _this = $(this), idx = _this.index();
+                //debugger;
+                if (_this.hasClass("colsort")) {
+                    eltop.find("thead th.colsort").addClass(all);
+                    thCls.removeClass(sd).removeClass(sa);
+                    var currSort = _this.attr("sort");
+                    var deasc = currSort == sd ? sa : sd;
+                    _this.attr("sort", deasc);
+                    _this.removeClass(all).addClass(currSort);
+                    //setSort(idx, deasc);
+                    window.lanhuSortIndex = idx+1;
+                    window.lanhuSortType = currSort;
+                    //debugger;
+                    
+                    that.loadDates();
+                }
+            })
+            return;
+        }
         //取出TD的值，并存入数组,取出前二个TD值；
         var setSort = function(idx,sorted) {
             var sortedMap = [];
@@ -316,25 +356,31 @@
     jepg.init = function () {
         var that = this, opts = that.opts;
         this.createHtml(opts.pageIndex);
+        //this.createHtml(opts.pageIndexResp);
         that.bindEvent();
     };
     jepg.createHtml = function(pagenum) {
         pagenum = parseInt(pagenum);
-        if(isEven(this.opts.pageSize)){alert("请将pageSize设为奇数，且不能小于3");return}
+        this.opts.pageSize = window.lanhuPageSize || 15;
+        //if(isEven(this.opts.pageSize)){alert("请将pageSize设为奇数，且不能小于3");return}
         var that = this, opts = that.opts, html = [],
-            start = opts.pageIndex, group = opts.pageSize,
-            pageCount = Math.ceil(opts.pageCount),
+            start = opts.pageIndex, showCount = 15,
+            pageCount = Math.ceil(opts.dataCount/opts.pageSize),
             dataCount = parseInt(opts.dataCount),
-            onBoth = Math.floor(opts.pageSize / 2);
-        if (pagenum >= group) {
-            start = pagenum - onBoth;
-            group = pagenum + onBoth;
-        }
-        if (group > pageCount) {
-            start = pageCount - onBoth*2;
-            group = pageCount;
-        }
-        if (start < 1) start = 1;
+            beforeCount = Math.floor(showCount / 2);
+        
+        var afterCount = showCount - beforeCount - 1;
+        var startNum = pagenum - beforeCount;
+        var endNum = pagenum + afterCount;
+        if (pagenum == 1) {
+            endNum = showCount;
+        } else if (pagenum == pageCount) {
+            startNum = pageCount - showCount +1;
+        } 
+     
+        if (startNum < 1) startNum = 1;
+        if (endNum > pageCount) endNum = pageCount;
+
         //统计页码的条数
         html.push('<span class="pagecount">共<em>' + pageCount + '</em>页</span>');
         //统计数据的条数
@@ -348,13 +394,13 @@
             html.push('<span class="flip noPage" title="上一页">' + opts.prevText + '</span>');
         }
         // 第一页
-        if (pagenum > opts.pageSize - 1) {
+        if (startNum >1) {
             var firstText = opts.ellipsis ? (opts.firstText == "" ? 1 : opts.firstText) : opts.firstText;
             html.push("<a href='" + that.hashUrl(1) + "' data-page='" + 1 + "' class='flip' title='"+firstText+"'>"+firstText+"</a> ");
             if(opts.ellipsis) html.push("<span>···</span>");
         }
         // 循环渲染可见的按钮
-        for (var i = start; i <= group; i++) {
+        for (var i = startNum; i <= endNum; i++) {
             if(i == pagenum){
                 html.push('<span class="current">' + i + '</span>');
             }else{
@@ -362,7 +408,7 @@
             }
         }
         // 最后一页
-        if (pagenum < pageCount - (onBoth + 1)) {
+        if (pageCount > endNum) {
             var lastText =  opts.ellipsis ? (opts.lastText == "" ? pageCount : opts.lastText) : opts.lastText;
             if(opts.ellipsis) html.push("<span>···</span> ");
             html.push("<a href='" + this.hashUrl(pageCount) + "' data-page='" + pageCount + "' class='flip' title='" + lastText + "'>" + lastText + "</a> ");
@@ -373,6 +419,13 @@
         } else {
             html.push('<span class="flip noPage">' + opts.nextText + '</span>');
         }
+        //每页大小
+        var arr = [15, 30, 50, 100];
+        html.push('<select class="sel-page-size">');
+        for (var j = 0; j < arr.length; j++) {
+            html.push('<option value="' + arr[j] + '"' + (window.lanhuPageSize == arr[j] ? " selected='selected'" : "") + '>(' + arr[j] + ' 条/页)</option>');
+        }
+        html.push('</select>');
         //跳转设置页码
         html.push('<span>转到<input type="text" class="gopage"><button type="button" class="gobtn">Go</button></span>');
         that.elCell.html("<div class='pagebox'>"+html.join("")+"</div>");
@@ -390,6 +443,12 @@
                 that.setPageIndex(indexVal);
             } 
         });
+        that.elCell.on("change", ".sel-page-size", function () {
+            var pageSize = that.elCell.find(".sel-page-size").val();
+            window.lanhuPageSize = pageSize;
+            debugger;
+            that.setPageIndex(1);
+        });
     };
     jepg.hashUrl = function(pageIndex) {
         var that = this, opts = that.opts;
@@ -398,7 +457,7 @@
         }
         return "javascript:;";
     };
-    jepg.setPageIndex = function(pageIndex) {
+    jepg.setPageIndex = function(pageIndex,pageSize) {
         this.createHtml(pageIndex);
         this.opts.jumpChange && this.opts.jumpChange(pageIndex);
     };
